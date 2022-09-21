@@ -10,10 +10,12 @@ find_package(glfw3 3.3 REQUIRED)
 
 include_directories(include)
 include_directories(glad/include)
+include_directories(stb_image)
 set(SOURCES
-	src/main.cpp
-	src/shader.cpp
-	glad/src/glad.c)
+        src/main.cpp
+        src/shader.cpp
+        glad/src/glad.c
+        stb_image/stb_image.c)
 add_executable(${EXECUTABLE_NAME} ${SOURCES})
 
 target_link_libraries(${EXECUTABLE_NAME} glfw)

@@ -1,5 +1,7 @@
 glad
+stb_image
 build
+cmake-build-debug
 .cache
 .DS_Store
 
