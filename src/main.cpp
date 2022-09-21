@@ -36,7 +36,7 @@ int main() {
         return -1;
     }
 
-    // ------------------------------ STBI Image Initialisation ------------------------------ //
+    // ------------------------------ STB Image Initialisation ------------------------------ //
     stbi_set_flip_vertically_on_load(true);
 
     // ------------------------------ Variable Initialisation ------------------------------ //
