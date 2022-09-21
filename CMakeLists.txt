@@ -12,10 +12,11 @@ include_directories(include)
 include_directories(glad/include)
 include_directories(stb_image)
 set(SOURCES
-        src/main.cpp
-        src/shader.cpp
         glad/src/glad.c
-        stb_image/stb_image.c)
+        stb_image/stb_image.c
+        src/main.cpp
+        src/Shader.cpp
+        src/Camera.cpp)
 add_executable(${EXECUTABLE_NAME} ${SOURCES})
 
 target_link_libraries(${EXECUTABLE_NAME} glfw)
