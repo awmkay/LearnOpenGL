@@ -3,6 +3,9 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <stb_image.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include <iostream>
 
@@ -93,6 +96,11 @@ int main() {
     generateTexture(textures[0], "media/textures/container.jpg", false);
     generateTexture(textures[1], "media/textures/awesomeface.png", true);
 
+    // Activate the shader program
+    shader.use();
+    shader.setInt("texture0", 0);
+    shader.setInt("texture1", 1);
+
     // ------------------------------ Game Loop ------------------------------ //
     while (!glfwWindowShouldClose(window)) {
         // Process user input
@@ -102,10 +110,13 @@ int main() {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        // Activate the shader program
-        shader.use();
-        shader.setInt("texture0", 0);
-        shader.setInt("texture1", 1);
+        // Scale and rotate the container
+        glm::mat4 trans(1.0f);
+        trans = glm::translate(trans, glm::vec3(0.5, -0.5, 0.5));
+        trans = glm::scale(trans, glm::vec3(0.5, -0.5, 0.5));
+        trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0, 0.0, 0.1f));
+
+        shader.setMat4("transform", trans);
 
         // Make the textures active
         glActiveTexture(GL_TEXTURE0);
