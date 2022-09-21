@@ -12,6 +12,7 @@ include_directories(include)
 include_directories(glad/include)
 set(SOURCES
 	src/main.cpp
+	src/shader.cpp
 	glad/src/glad.c)
 add_executable(${EXECUTABLE_NAME} ${SOURCES})
 
