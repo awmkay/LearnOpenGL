@@ -64,6 +64,10 @@ float Camera::GetFov() const {
     return fov;
 }
 
+glm::vec3 Camera::GetPosition() const {
+    return position;
+}
+
 void Camera::UpdateCameraVectors() {
     glm::vec3 frontTemp = {
             std::cos(glm::radians(yaw)) * std::cos(glm::radians(pitch)),
