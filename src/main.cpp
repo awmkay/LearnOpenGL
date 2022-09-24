@@ -113,7 +113,7 @@ int main() {
     Shader lightingShader("src/lighting.vs", "src/lighting.fs");
     Shader lightSourceShader("src/lightSource.vs", "src/lightSource.fs");
     glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
-    glm::vec3 lightColor(1.0f, 1.0f, 1.0f);
+    glm::vec3 lightColor(1.0f);
 
     unsigned int boxVAO;
     unsigned int lightSourceVAO;
@@ -159,13 +159,33 @@ int main() {
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        // Move the light position
+        float x = (float)std::sin(glfwGetTime() / 2);
+        float z = (float)std::cos(glfwGetTime() / 2);
+        float y = 2;
+        lightPos = glm::vec3(x * 4, y, z * 4);
+
+        // Update the light color
+        lightColor.x = sin(glfwGetTime() * 2.0f);
+        lightColor.y = sin(glfwGetTime() * 0.7f);
+        lightColor.z = sin(glfwGetTime() * 1.3f);
+
+        glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f);
+        glm::vec3 ambientColor = glm::vec3(0.7, 0.3, 0.7);
+
         // Activate the lighting shader and then pass it the projection, view and model matrices
         lightingShader.use();
 
         // Pass the colors to the fragment shader
-        lightingShader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
-        lightingShader.setVec3("lightColor", lightColor);
-        lightingShader.setVec3("lightPos", lightPos);
+        lightingShader.setVec3("material.ambient", ambientColor);
+        lightingShader.setVec3("material.diffuse", diffuseColor);
+        lightingShader.setVec3("material.specular", 0.5f, 0.5f, 0.5f);
+        lightingShader.setFloat("material.shininess", 32.0f);
+
+        lightingShader.setVec3("light.ambient", 0.2f, 0.2f, 0.2f);
+        lightingShader.setVec3("light.diffuse", 0.5f, 0.5f, 0.5f);
+        lightingShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
+        lightingShader.setVec3("light.position", lightPos);
         glm::vec3 viewPos = camera.GetPosition();
         lightingShader.setVec3("viewPos", viewPos);
 
@@ -184,7 +204,6 @@ int main() {
 
         // Activate the light source shader, pass it the matrices
         lightSourceShader.use();
-
         lightSourceShader.setVec3("lightColor", lightColor);
 
         model = glm::mat4(1.0f);
