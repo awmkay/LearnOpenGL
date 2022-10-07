@@ -124,6 +124,13 @@ int main() {
             glm::vec3(-1.3f,  1.0f, -1.5f)
     };
 
+    glm::vec3 pointLightPositions[] = {
+            glm::vec3( 0.7f,  0.2f,   2.0f),
+            glm::vec3( 2.3f, -3.3f,  -4.0f),
+            glm::vec3(-4.0f,  2.0f, -12.0f),
+            glm::vec3( 0.0f,  0.0f,  -3.0f)
+    };
+
 
     Shader lightingShader("src/lighting.vs", "src/lighting.fs");
     Shader lightSourceShader("src/lightSource.vs", "src/lightSource.fs");
@@ -180,63 +187,77 @@ int main() {
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // Activate the lighting shader and then pass it the projection, view and model matrices
+        // Activate the lighting shader and pass it the view position and container shininess
         lightingShader.use();
-        glm::vec3 viewPos = camera.GetPosition();
-        lightingShader.setVec3("viewPos", viewPos);
-//        lightingShader.setVec3("light.direction", -0.2f, -1.0f, -0.3f);
-        lightingShader.setVec3("light.direction", lightPos);
+        lightingShader.setVec3("viewPos", camera.GetPosition());
+        lightingShader.setFloat("material.shininess", 32.0f);
 
-        lightingShader.setVec3("light.ambient", 0.2f, 0.2f, 0.2f);
-        lightingShader.setVec3("light.diffuse", 0.5f, 0.5f, 0.5f);
-        lightingShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
+        // Values used multiple times
+        glm::vec3 ambient(0.05f);
+        glm::vec3 diffuse(0.8f);
+        glm::vec3 specular(1.0f);
 
-        lightingShader.setFloat("light.constant", 1.0f);
-        lightingShader.setFloat("light.linear", 0.09f);
-        lightingShader.setFloat("light.quadratic", 0.032f);
+        // Pass the fragment shader the values for the directional light
+        lightingShader.setVec3("dirLight.direction", -0.2f, -1.0f, -0.3f);
+        lightingShader.setVec3("dirLight.ambient", ambient);
+        lightingShader.setVec3("dirLight.diffuse", diffuse);
+        lightingShader.setVec3("dirLight.specular", specular);
 
-        lightingShader.setFloat("material.shininess", 64.0f);
+        // Pass the fragment shader the values for each of the point lights
+        for (int i = 0; i < 4; i++) {
+            lightingShader.setVec3("pointLights[" + std::to_string(i) + "].position", pointLightPositions[i]);
+            lightingShader.setVec3("pointLights[" + std::to_string(i) + "].ambient", ambient);
+            lightingShader.setVec3("pointLights[" + std::to_string(i) + "].diffuse", diffuse);
+            lightingShader.setVec3("pointLights[" + std::to_string(i) + "].specular", specular);
+            lightingShader.setFloat("pointLights[" + std::to_string(i) + "].constant", 1.0f);
+            lightingShader.setFloat("pointLights[" + std::to_string(i) + "].linear", 0.09f);
+            lightingShader.setFloat("pointLights[" + std::to_string(i) + "].quadratic", 0.032f);
+        }
 
-        // Box position
-        glm::mat4 projection = glm::perspective(glm::radians(camera.GetFov()),
-                                                (float) SCREEN_WIDTH / (float) SCREEN_HEIGHT, 0.1f, 100.0f);
+        // Pass the vertex/fragment shader the projection and view matrices
+        glm::mat4 projection = glm::perspective(glm::radians(camera.GetFov()), (float)SCREEN_WIDTH / (float)SCREEN_HEIGHT, 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix();
-        glm::mat4 model(1.0f);
         lightingShader.setMat4("projection", projection);
         lightingShader.setMat4("view", view);
 
-        // Diffuse and specular maps
+        // World transformations
+        glm::mat4 model = glm::mat4(1.0f);
+        lightingShader.setMat4("model", model);
+
+        // Bind the diffusion and specular maps
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, diffuseMap);
-
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, specularMap);
 
-        // Render the box
+        // Render the containers
         glBindVertexArray(boxVAO);
         for (unsigned int i = 0; i < 10; i++) {
             // calculate the model matrix for each object and pass it to shader before drawing
             model = glm::mat4(1.0f);
             model = glm::translate(model, cubePositions[i]);
-            float angle = 20.0f * i;
+            float angle = 20.0f * (float)i;
             model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
             lightingShader.setMat4("model", model);
 
             glDrawArrays(GL_TRIANGLES, 0, 36);
         }
 
-        // Activate the light source shader, pass it the matrices
         lightSourceShader.use();
         lightSourceShader.setMat4("projection", projection);
         lightSourceShader.setMat4("view", view);
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, lightPos);
-        model = glm::scale(model, glm::vec3(0.2f));
-        lightSourceShader.setMat4("model", model);
 
-        // Render the light source
+        // we now draw as many light bulbs as we have point lights.
         glBindVertexArray(lightSourceVAO);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+        for (unsigned int i = 0; i < 4; i++) {
+            model = glm::mat4(1.0f);
+            model = glm::translate(model, pointLightPositions[i]);
+            model = glm::scale(model, glm::vec3(0.2f)); // Make it a smaller cube
+            lightSourceShader.setMat4("model", model);
+
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        }
+
 
         // Check and call events and swap the butters
         glfwPollEvents();
