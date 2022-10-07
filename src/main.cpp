@@ -110,10 +110,24 @@ int main() {
             -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f
     };
 
+    // positions all containers
+    glm::vec3 cubePositions[] = {
+            glm::vec3( 0.0f,  0.0f,  0.0f),
+            glm::vec3( 2.0f,  5.0f, -15.0f),
+            glm::vec3(-1.5f, -2.2f, -2.5f),
+            glm::vec3(-3.8f, -2.0f, -12.3f),
+            glm::vec3( 2.4f, -0.4f, -3.5f),
+            glm::vec3(-1.7f,  3.0f, -7.5f),
+            glm::vec3( 1.3f, -2.0f, -2.5f),
+            glm::vec3( 1.5f,  2.0f, -2.5f),
+            glm::vec3( 1.5f,  0.2f, -1.5f),
+            glm::vec3(-1.3f,  1.0f, -1.5f)
+    };
+
+
     Shader lightingShader("src/lighting.vs", "src/lighting.fs");
-    Shader lightSourceShader("src/lightSource.vs", "src/lightSource.fs");
-    glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
-    glm::vec3 lightColor(1.0f);
+//    Shader lightSourceShader("src/lightSource.vs", "src/lightSource.fs");
+//    glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
 
     unsigned int boxVAO;
     unsigned int lightSourceVAO;
@@ -137,13 +151,13 @@ int main() {
     glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void *)(6 * sizeof(float)));
     glEnableVertexAttribArray(2);
 
-    // Create the light source VAO and bind it (VBO still bound with data copied)
-    glGenVertexArrays(1, &lightSourceVAO);
-    glBindVertexArray(lightSourceVAO);
-
-    // Tell OpenGL how to interpret the vertex data
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), nullptr);
-    glEnableVertexAttribArray(0);
+//    // Create the light source VAO and bind it (VBO still bound with data copied)
+//    glGenVertexArrays(1, &lightSourceVAO);
+//    glBindVertexArray(lightSourceVAO);
+//
+//    // Tell OpenGL how to interpret the vertex data
+//    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), nullptr);
+//    glEnableVertexAttribArray(0);
 
     unsigned int diffuseMap = loadTexture("media/textures/container2.png");
     unsigned int specularMap = loadTexture("media/textures/container2_specular.png");
@@ -170,7 +184,7 @@ int main() {
         lightingShader.use();
         glm::vec3 viewPos = camera.GetPosition();
         lightingShader.setVec3("viewPos", viewPos);
-        lightingShader.setVec3("light.position", lightPos);
+        lightingShader.setVec3("light.direction", -0.2f, -1.0f, -0.3f);
 
         lightingShader.setVec3("light.ambient", 0.2f, 0.2f, 0.2f);
         lightingShader.setVec3("light.diffuse", 0.5f, 0.5f, 0.5f);
@@ -196,20 +210,31 @@ int main() {
 
         // Render the box
         glBindVertexArray(boxVAO);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+        for (unsigned int i = 0; i < 10; i++) {
+            // calculate the model matrix for each object and pass it to shader before drawing
+            glm::mat4 model = glm::mat4(1.0f);
+            model = glm::translate(model, cubePositions[i]);
+            float angle = 20.0f * i;
+            model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+            lightingShader.setMat4("model", model);
 
-        // Activate the light source shader, pass it the matrices
-        lightSourceShader.use();
-        lightSourceShader.setMat4("projection", projection);
-        lightSourceShader.setMat4("view", view);
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, lightPos);
-        model = glm::scale(model, glm::vec3(0.2f));
-        lightSourceShader.setMat4("model", model);
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        }
 
-        // Render the light source
-        glBindVertexArray(lightSourceVAO);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+//        glDrawArrays(GL_TRIANGLES, 0, 36);
+
+//        // Activate the light source shader, pass it the matrices
+//        lightSourceShader.use();
+//        lightSourceShader.setMat4("projection", projection);
+//        lightSourceShader.setMat4("view", view);
+//        model = glm::mat4(1.0f);
+//        model = glm::translate(model, lightPos);
+//        model = glm::scale(model, glm::vec3(0.2f));
+//        lightSourceShader.setMat4("model", model);
+//
+//        // Render the light source
+//        glBindVertexArray(lightSourceVAO);
+//        glDrawArrays(GL_TRIANGLES, 0, 36);
 
         // Check and call events and swap the butters
         glfwPollEvents();
