@@ -1,7 +1,9 @@
 glad
 stb_image
+assimp
 build
 cmake-build-debug
+cmake-build-release
 .cache
 .DS_Store
 
