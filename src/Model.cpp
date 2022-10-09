@@ -94,9 +94,9 @@ std::vector<Texture> Model::loadMaterialTextures(aiMaterial *mat, aiTextureType 
         aiString str;
         mat->GetTexture(type, i, &str);
         bool skip = false;
-        for (auto & texture : texturesLoaded) {
-            if (std::strcmp(texture.path.data(), str.C_Str()) == 0) {
-                textures.push_back(texture);
+        for (auto & j : texturesLoaded) {
+            if (std::strcmp(j.path.data(), str.C_Str()) == 0) {
+                textures.push_back(j);
                 skip = true;
                 break;
             }
@@ -108,6 +108,7 @@ std::vector<Texture> Model::loadMaterialTextures(aiMaterial *mat, aiTextureType 
             texture.type = typeName;
             texture.path = str.C_Str();
             textures.push_back(texture);
+            texturesLoaded.push_back(texture);
         }
     }
     return textures;

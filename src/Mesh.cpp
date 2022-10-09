@@ -1,8 +1,6 @@
 #include "Mesh.h"
 
 Mesh::Mesh(std::vector<Vertex> vertices, std::vector<unsigned int> indices, std::vector<Texture> textures) {
-    std::cout << "Generating Mesh" << std::endl;
-
     this->vertices = vertices;
     this->indices = indices;
     this->textures = textures;
